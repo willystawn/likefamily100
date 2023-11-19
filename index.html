@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+        background-color: #e0e0e0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 90vh;
+      }
+
+      h2 {
+        color: #333;
+        text-align: center;
+      }
+
+      table {
+        color: #333;
+        width: 60%;
+        margin: 20px auto;
+        border-collapse: collapse;
+        background-color: #fff;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+        overflow: hidden;
+      }
+
+      th,
+      td {
+        border: 1px solid #ddd;
+        padding: 15px;
+        text-align: center;
+        font-size: 18px;
+      }
+
+      th {
+        background-color: #4caf50;
+        color: #fff;
+      }
+
+      input[type="text"] {
+        padding: 15px;
+        margin-bottom: 20px;
+        width: 60%;
+        box-sizing: border-box;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-size: 18px;
+        display: block;
+        margin: 20px auto;
+        text-align: center; /* Rata tengah teks */
+      }
+
+      textarea {
+        padding: 15px;
+        margin-bottom: 20px;
+        width: 60%;
+        box-sizing: border-box;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-size: 18px;
+        display: block;
+        margin: 20px auto;
+        resize: vertical; /* Biarkan textarea dapat diresize secara vertikal */
+      }
+
+      button {
+        padding: 15px 30px;
+        background-color: #4caf50;
+        color: #fff;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 18px;
+        display: block;
+        margin: 20px auto;
+        transition: background-color 0.3s;
+      }
+
+      button:hover {
+        background-color: #45a049;
+      }
+
+      .credit {
+        margin-top: 20px;
+        color: #333;
+        font-size: 15px;
+        font-weight: bold;
+      }
+    </style>
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        // Function to initialize the table with default values
+        function initializeTable() {
+          var tableBody = document.getElementById("answerTableBody");
+          tableBody.innerHTML = ""; // Menghapus isi tabel sebelumnya
+
+          // Mengambil jawaban dan skor dari input pengguna
+          var rawAnswers = document.getElementById("inputAnswers").value;
+          var answersArray = rawAnswers.split("\n");
+
+          var answers = answersArray.map(function (answer) {
+            var parts = answer.split(",");
+            return { jawaban: parts[0].trim(), skor: parseInt(parts[1].trim()) };
+          });
+
+          // Membuat baris tabel untuk setiap jawaban
+          for (var i = 0; i < answers.length; i++) {
+            var answerRow = document.createElement("tr");
+            answerRow.setAttribute("id", "answerRow" + i);
+
+            var answerCell = document.createElement("td");
+            answerCell.innerText = "-";
+            answerRow.appendChild(answerCell);
+
+            var scoreCell = document.createElement("td");
+            scoreCell.innerText = "-";
+            answerRow.appendChild(scoreCell);
+
+            tableBody.appendChild(answerRow);
+          }
+
+          // Sembunyikan textarea dan tombol "Submit"
+          document.getElementById("inputAnswers").style.display = "none";
+          document.getElementById("submitTextareaBtn").style.display = "none";
+        }
+
+        var inputAnswers = {}; // Variabel untuk menyimpan jawaban yang sudah diinput
+        var previousScore = {}; // Variabel untuk menyimpan skor sebelumnya
+
+        // Fungsi untuk mengecek jawaban
+        function submitAnswer() {
+          var inputAnswer = document.getElementById("inputAnswer").value;
+
+          // Ambil jawaban dan skor dari input pengguna
+          var rawAnswers = document.getElementById("inputAnswers").value;
+          var answersArray = rawAnswers.split("\n");
+
+          var answers = answersArray.map(function (answer) {
+            var parts = answer.split(",");
+            return { jawaban: parts[0].trim(), skor: parseInt(parts[1].trim()) };
+          });
+
+          var tableBody = document.getElementById("answerTableBody");
+
+          var isAnswerCorrect = false; // Menambahkan variabel untuk mengecek jawaban
+
+          // Loop melalui setiap jawaban
+          for (var i = 0; i < answers.length; i++) {
+            var answerRow = document.getElementById("answerRow" + i);
+
+            // Tampilkan jawaban dan skor yang sesuai, sembunyikan yang lain
+            if (answers[i].jawaban.toLowerCase() === inputAnswer.toLowerCase()) {
+              answerRow.querySelector("td:first-child").innerText = inputAnswers[inputAnswer] || answers[i].jawaban;
+              answerRow.querySelector("td:last-child").innerText = answers[i].skor;
+
+              // Simpan skor sebelumnya
+              previousScore[inputAnswer] = answers[i].skor;
+
+              inputAnswers[inputAnswer] = inputAnswers[inputAnswer] || answers[i].jawaban;
+
+              isAnswerCorrect = true; // Jawaban benar
+              break; // Keluar dari loop karena jawaban sudah ditemukan
+            }
+          }
+
+          // Tampilkan SweetAlert berdasarkan kebenaran jawaban
+          if (isAnswerCorrect) {
+            Swal.fire({
+              title: "🤩",
+              text: "Jawaban Anda Benar!",
+              icon: "success",
+              confirmButtonText: "Ok",
+            });
+          } else {
+            Swal.fire({
+              title: "😭",
+              text: "Jawaban Anda Salah!",
+              icon: "error",
+              confirmButtonText: "Ok",
+            });
+          }
+
+          // Mengosongkan nilai input
+          document.getElementById("inputAnswer").value = "";
+        }
+
+        // Fungsi untuk menangani submit textarea dan menginisialisasi tabel
+        function submitTextarea() {
+          initializeTable();
+        }
+
+        // Event listener untuk tombol "Enter" pada textarea
+        document.getElementById("inputAnswers").addEventListener("keyup", function (event) {
+          if (event.key === "Enter") {
+            submitTextarea();
+          }
+        });
+
+        // Event listener untuk tombol "Submit" pada textarea
+        document.getElementById("submitTextareaBtn").addEventListener("click", submitTextarea);
+
+        // Event listener untuk tombol "Enter" pada input jawaban
+        document.getElementById("inputAnswer").addEventListener("keyup", function (event) {
+          if (event.key === "Enter") {
+            submitAnswer();
+          }
+        });
+
+        // Event listener untuk tombol "Submit" pada input jawaban
+        document.getElementById("submitBtn").addEventListener("click", submitAnswer);
+      });
+    </script>
+  </head>
+  <body>
+    <table>
+      <thead>
+        <tr>
+          <th>Jawaban</th>
+          <th style="width: 20%">Skor</th>
+        </tr>
+      </thead>
+      <tbody id="answerTableBody">
+        <!-- Baris tabel akan ditambahkan secara dinamis di sini -->
+      </tbody>
+    </table>
+
+    <input type="text" id="inputAnswer" placeholder="Masukkan Jawaban" />
+    <button id="submitBtn">Submit</button>
+
+    <textarea id="inputAnswers" placeholder="Masukkan Jawaban dan Skor (Contoh: Mainan,30)"></textarea>
+    <button id="submitTextareaBtn">Tambah</button>
+
+    <div class="credit">Build with ❤️ by @willystawn</div>
+  </body>
+</html>
